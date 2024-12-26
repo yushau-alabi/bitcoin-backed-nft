@@ -257,3 +257,21 @@
         (ok true)
     )
 )
+
+;; Enhanced Governance Token Redemption
+(define-public (redeem-governance-tokens)
+    (let 
+        (
+            (available-tokens (default-to u0 (map-get? governance-tokens tx-sender)))
+        )
+        ;; Check available tokens
+        (asserts! (> available-tokens u0) ERR-INSUFFICIENT-BALANCE)
+        
+        ;; Reset governance tokens
+        (map-set governance-tokens tx-sender u0)
+        (ok available-tokens)
+    )
+)
+
+;; Initialization
+(print "Bitcoin-Backed NFT Platform Deployed with Enhanced Security")
