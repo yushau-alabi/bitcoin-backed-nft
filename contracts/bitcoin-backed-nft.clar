@@ -69,3 +69,15 @@
     principal 
     uint
 )
+
+;; Read-only functions with additional safety checks
+(define-read-only (get-nft-metadata (token-id (buff 32)))
+    (begin
+        (asserts! (is-valid-token-id token-id) none)
+        (map-get? nft-metadata {token-id: token-id})
+    )
+)
+
+(define-read-only (get-governance-tokens (user principal))
+    (default-to u0 (map-get? governance-tokens user))
+)
