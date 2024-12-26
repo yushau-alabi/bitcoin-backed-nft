@@ -116,3 +116,36 @@
         (ok token-id)
     )
 )
+
+;; Enhanced Transfer Function
+(define-public (transfer-nft 
+    (token-id (buff 32))
+    (sender principal)
+    (recipient principal)
+)
+    (let 
+        (
+            (metadata (unwrap! (map-get? nft-metadata {token-id: token-id}) ERR-NOT-FOUND))
+        )
+        ;; Additional input validations
+        (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
+        (asserts! (not (is-eq sender recipient)) ERR-INVALID-TRANSFER)
+        
+        ;; Verify sender is current owner
+        (asserts! (is-eq sender (get owner metadata)) ERR-UNAUTHORIZED)
+        
+        ;; Ensure no active staking
+        (asserts! (is-none (get staking-start metadata)) ERR-INVALID-TRANSFER)
+        
+        ;; Transfer NFT
+        (try! (nft-transfer? bitcoin-backed-nft token-id sender recipient))
+        
+        ;; Update metadata
+        (map-set nft-metadata 
+            {token-id: token-id}
+            (merge metadata {owner: recipient})
+        )
+        
+        (ok true)
+    )
+)
