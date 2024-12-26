@@ -232,3 +232,28 @@
         (ok reward-calculation)
     )
 )
+
+;; Enhanced Burn Function
+(define-public (burn-nft (token-id (buff 32)))
+    (let 
+        (
+            (metadata (unwrap! (map-get? nft-metadata {token-id: token-id}) ERR-NOT-FOUND))
+        )
+        ;; Additional input validations
+        (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
+        
+        ;; Verify owner
+        (asserts! (is-eq tx-sender (get owner metadata)) ERR-UNAUTHORIZED)
+        
+        ;; Ensure not staked
+        (asserts! (is-none (get staking-start metadata)) ERR-INVALID-TRANSFER)
+        
+        ;; Burn NFT
+        (try! (nft-burn? bitcoin-backed-nft token-id tx-sender))
+        
+        ;; Remove metadata
+        (map-delete nft-metadata {token-id: token-id})
+        
+        (ok true)
+    )
+)
