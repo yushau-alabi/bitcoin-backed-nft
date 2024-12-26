@@ -149,3 +149,43 @@
         (ok true)
     )
 )
+
+;; Enhanced Stake Function
+(define-public (stake-nft (token-id (buff 32)))
+    (let 
+        (
+            (metadata (unwrap! (map-get? nft-metadata {token-id: token-id}) ERR-NOT-FOUND))
+            (current-block block-height)
+        )
+        ;; Additional input validations
+        (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
+        
+        ;; Verify owner
+        (asserts! (is-eq tx-sender (get owner metadata)) ERR-UNAUTHORIZED)
+        
+        ;; Ensure not already staked
+        (asserts! (is-none (get staking-start metadata)) ERR-STAKING-ERROR)
+        
+        ;; Update NFT metadata with staking info
+        (map-set nft-metadata 
+            {token-id: token-id}
+            (merge metadata 
+                {
+                    staking-start: (some current-block)
+                }
+            )
+        )
+        
+        ;; Create staking entry
+        (map-set nft-staking 
+            {token-id: token-id}
+            {
+                staked-by: tx-sender,
+                stake-start-block: current-block,
+                total-staked-blocks: u0
+            }
+        )
+        
+        (ok true)
+    )
+)
