@@ -42,3 +42,30 @@
         (< asset-value u1000000)
     )
 )
+
+;; Storage Maps
+(define-map nft-metadata 
+    {token-id: (buff 32)} 
+    {
+        owner: principal,
+        asset-type: (string-utf8 50),
+        asset-value: uint,
+        mint-timestamp: uint,
+        staking-start: (optional uint),
+        staking-rewards: uint
+    }
+)
+
+(define-map nft-staking 
+    {token-id: (buff 32)} 
+    {
+        staked-by: principal,
+        stake-start-block: uint,
+        total-staked-blocks: uint
+    }
+)
+
+(define-map governance-tokens 
+    principal 
+    uint
+)
