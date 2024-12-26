@@ -81,3 +81,38 @@
 (define-read-only (get-governance-tokens (user principal))
     (default-to u0 (map-get? governance-tokens user))
 )
+
+;; Enhanced Mint Function with Comprehensive Validation
+(define-public (mint-nft 
+    (token-id (buff 32))
+    (asset-type (string-utf8 50))
+    (asset-value uint)
+)
+    (begin
+        ;; Validate all inputs
+        (asserts! (is-valid-token-id token-id) ERR-INVALID-TOKEN)
+        (asserts! (is-valid-asset-type asset-type) ERR-INVALID-INPUT)
+        (asserts! (is-valid-asset-value asset-value) ERR-INVALID-INPUT)
+        
+        ;; Check if NFT already exists
+        (asserts! (is-none (nft-get-owner? bitcoin-backed-nft token-id)) ERR-ALREADY-MINTED)
+        
+        ;; Mint the NFT
+        (try! (nft-mint? bitcoin-backed-nft token-id tx-sender))
+        
+        ;; Store NFT metadata with validated inputs
+        (map-set nft-metadata 
+            {token-id: token-id}
+            {
+                owner: tx-sender,
+                asset-type: asset-type,
+                asset-value: asset-value,
+                mint-timestamp: block-height,
+                staking-start: none,
+                staking-rewards: u0
+            }
+        )
+        
+        (ok token-id)
+    )
+)
